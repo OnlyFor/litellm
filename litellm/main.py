@@ -147,6 +147,8 @@ from .llms.vertex_ai_and_google_ai_studio.vertex_embeddings.embedding_handler im
 from .llms.watsonx import IBMWatsonXAI
 from .types.llms.openai import (
     ChatCompletionAssistantMessage,
+    ChatCompletionAudioParam,
+    ChatCompletionModality,
     ChatCompletionUserMessage,
     HttpxBinaryResponseContent,
 )
@@ -287,6 +289,8 @@ async def acompletion(
     stop=None,
     max_tokens: Optional[int] = None,
     max_completion_tokens: Optional[int] = None,
+    modalities: Optional[List[ChatCompletionModality]] = None,
+    audio: Optional[ChatCompletionAudioParam] = None,
     presence_penalty: Optional[float] = None,
     frequency_penalty: Optional[float] = None,
     logit_bias: Optional[dict] = None,
@@ -327,6 +331,8 @@ async def acompletion(
         stop(string/list, optional): - Up to 4 sequences where the LLM API will stop generating further tokens.
         max_tokens (integer, optional): The maximum number of tokens in the generated completion (default is infinity).
         max_completion_tokens (integer, optional): An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens.
+        modalities (List[ChatCompletionModality], optional): Output types that you would like the model to generate for this request. You can use `["text", "audio"]`
+        audio (ChatCompletionAudioParam, optional): Parameters for audio output. Required when audio output is requested with modalities: ["audio"]
         presence_penalty (float, optional): It is used to penalize new tokens based on their existence in the text so far.
         frequency_penalty: It is used to penalize new tokens based on their frequency in the text so far.
         logit_bias (dict, optional): Used to modify the probability of specific tokens appearing in the completion.
@@ -366,6 +372,8 @@ async def acompletion(
         "stop": stop,
         "max_tokens": max_tokens,
         "max_completion_tokens": max_completion_tokens,
+        "modalities": modalities,
+        "audio": audio,
         "presence_penalty": presence_penalty,
         "frequency_penalty": frequency_penalty,
         "logit_bias": logit_bias,
@@ -657,7 +665,7 @@ def mock_completion(
 
 
 @client
-def completion(  # type: ignore
+def completion(  # type: ignore # noqa: PLR0915
     model: str,
     # Optional OpenAI params: see https://platform.openai.com/docs/api-reference/chat/create
     messages: List = [],
@@ -670,6 +678,8 @@ def completion(  # type: ignore
     stop=None,
     max_completion_tokens: Optional[int] = None,
     max_tokens: Optional[int] = None,
+    modalities: Optional[List[ChatCompletionModality]] = None,
+    audio: Optional[ChatCompletionAudioParam] = None,
     presence_penalty: Optional[float] = None,
     frequency_penalty: Optional[float] = None,
     logit_bias: Optional[dict] = None,
@@ -712,6 +722,8 @@ def completion(  # type: ignore
         stop(string/list, optional): - Up to 4 sequences where the LLM API will stop generating further tokens.
         max_tokens (integer, optional): The maximum number of tokens in the generated completion (default is infinity).
         max_completion_tokens (integer, optional): An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens.
+        modalities (List[ChatCompletionModality], optional): Output types that you would like the model to generate for this request.. You can use `["text", "audio"]`
+        audio (ChatCompletionAudioParam, optional): Parameters for audio output. Required when audio output is requested with modalities: ["audio"]
         presence_penalty (float, optional): It is used to penalize new tokens based on their existence in the text so far.
         frequency_penalty: It is used to penalize new tokens based on their frequency in the text so far.
         logit_bias (dict, optional): Used to modify the probability of specific tokens appearing in the completion.
@@ -816,6 +828,8 @@ def completion(  # type: ignore
         "stream_options",
         "stop",
         "max_completion_tokens",
+        "modalities",
+        "audio",
         "max_tokens",
         "presence_penalty",
         "frequency_penalty",
@@ -975,6 +989,8 @@ def completion(  # type: ignore
             stop=stop,
             max_tokens=max_tokens,
             max_completion_tokens=max_completion_tokens,
+            modalities=modalities,
+            audio=audio,
             presence_penalty=presence_penalty,
             frequency_penalty=frequency_penalty,
             logit_bias=logit_bias,
@@ -1515,7 +1531,7 @@ def completion(  # type: ignore
 
             ## COMPLETION CALL
             try:
-                if litellm.OpenAIO1Config().is_model_o1_reasoning_model(model=model):
+                if litellm.openAIO1Config.is_model_o1_reasoning_model(model=model):
                     response = openai_o1_chat_completions.completion(
                         model=model,
                         messages=messages,
@@ -3136,7 +3152,7 @@ async def aembedding(*args, **kwargs) -> EmbeddingResponse:
 
 
 @client
-def embedding(
+def embedding(  # noqa: PLR0915
     model,
     input=[],
     # Optional params
@@ -3911,7 +3927,7 @@ async def atext_completion(
 
 
 @client
-def text_completion(
+def text_completion(  # noqa: PLR0915
     prompt: Union[
         str, List[Union[str, List[Union[str, List[int]]]]]
     ],  # Required: The prompt(s) to generate completions for.
@@ -4378,7 +4394,7 @@ async def aimage_generation(*args, **kwargs) -> ImageResponse:
 
 
 @client
-def image_generation(
+def image_generation(  # noqa: PLR0915
     prompt: str,
     model: Optional[str] = None,
     n: Optional[int] = None,
@@ -5111,7 +5127,7 @@ def speech(
 ##### Health Endpoints #######################
 
 
-async def ahealth_check(
+async def ahealth_check(  # noqa: PLR0915
     model_params: dict,
     mode: Optional[
         Literal[
@@ -5374,7 +5390,7 @@ def stream_chunk_builder_text_completion(
     return TextCompletionResponse(**response)
 
 
-def stream_chunk_builder(
+def stream_chunk_builder(  # noqa: PLR0915
     chunks: list, messages: Optional[list] = None, start_time=None, end_time=None
 ) -> Optional[Union[ModelResponse, TextCompletionResponse]]:
     try:
